@@ -33,9 +33,9 @@ def trend(fires):
         yaxis_title='Num Fires',
         xaxis_title='Date'
     )
-    fig.show()
-    url = px.iplot(fig, filename='fires.png')
-    print(url.resource)
+    # fig.show()
+    # url = px.iplot(fig, filename='fires.png')
+    # print(url.resource)
     fig.write_image(
         '/Users/graciegibbons/UW/Sophomore/Spring/CSE_163/fires.png'
         )
@@ -51,7 +51,6 @@ def fit_model(fires):
     '''
     # training model
     fires = fires.groupby('date', as_index=False)['number'].sum()
-    fires = fires[fires['number'] <= 5500]
     setup(data=fires, data_split_shuffle=False,
           target='number', fold=3)
     best = compare_models(sort='MAE')
@@ -65,7 +64,7 @@ def fit_model(fires):
         yaxis_title='Num Fires',
         xaxis_title='Date'
     )
-    fig.show()
+    # fig.show()
     fig.write_image(
         '/Users/graciegibbons/UW/Sophomore/Spring/CSE_163/fit_fires.png'
         )
@@ -90,7 +89,7 @@ def fit_model(fires):
         yaxis_title='Num Fires',
         xaxis_title='Date'
     )
-    fig.show()
+    # fig.show()
     fig.write_image(
         '/Users/graciegibbons/UW/Sophomore/Spring/CSE_163/predict_fires.png'
         )

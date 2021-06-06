@@ -5,6 +5,8 @@ Data visualization of forest fires in Brazil
 Plotted the total fires in each state over two decades
 and made a video of a time lapse of forest fires per month over two decades,
 by state
+fires refers to forest fire dataset, data refers to geospatial dataset,
+and merged is the combination of the two
 """
 
 import pandas as pd
@@ -14,7 +16,7 @@ import matplotlib.cm as cm
 import matplotlib as mpl
 from matplotlib.artist import Artist
 from unidecode import unidecode
-import datetime
+import numpy as np
 
 
 def process_fires(fires):
@@ -23,6 +25,9 @@ def process_fires(fires):
     date column has datetime values (specific month and year)
     and All the state names are normalized to match the geodataframe
     """
+    fires['number'] = fires['number'].astype(str)
+    fires['number'] = fires['number'].str.replace('.', '')
+    fires['number'] = fires['number'].astype(np.int64)
     fires['state'] = fires['state'].apply(unidecode)
     # make Piaui state names match in the datasets
     fires['state'] = fires['state'].replace('Piau', 'Piaui')
@@ -32,18 +37,18 @@ def process_fires(fires):
     fires.loc[mask, 'number'] = filters['number'] / 3
     # changing the months from Portugese to english
     fires['month'] = fires['month'].apply(unidecode)
-    fires['month'] = fires['month'].replace({'Janeiro' : 'January',\
-                                               'Fevereiro' : 'February',\
-                                               'Marco' : 'March',\
-                                               'Abril' : 'April',\
-                                               'Maio' : 'May',\
-                                               'Junho' : 'June',\
-                                               'Julho' : 'July',\
-                                               'Agosto' : 'August',\
-                                               'Setembro' : 'September',\
-                                               'Outubro' : 'October',\
-                                               'Novembro' : 'November',\
-                                               'Dezembro' : 'December'})
+    fires['month'] = fires['month'].replace({'Janeiro': 'January',
+                                             'Fevereiro': 'February',
+                                             'Marco': 'March',
+                                             'Abril': 'April',
+                                             'Maio': 'May',
+                                             'Junho': 'June',
+                                             'Julho': 'July',
+                                             'Agosto': 'August',
+                                             'Setembro': 'September',
+                                             'Outubro': 'October',
+                                             'Novembro': 'November',
+                                             'Dezembro': 'December'})
     # chaning date column to match month and year of month and year column
     fires['date'] = fires['year'].apply(str) + ' ' + fires['month']
     fires['date'] = pd.to_datetime(fires['date'], format='%Y %B')
@@ -52,8 +57,9 @@ def process_fires(fires):
 
 def merge(fires, data):
     """
-    process geometry data to normalize state names to match the Brazil forest fire dataset
-    merge dataframe and geodataframe containing geometry of states in Brazil
+    process geometry data to normalize state names to match the Brazil forest
+    fire dataset merge dataframe and geodataframe containing geometry of states
+    in Brazil
     return merged data and processed geometry data
     """
     # normalize state names in data to remove accents
@@ -93,21 +99,24 @@ def time_lapse(merged, data):
     """
     fig, ax = plt.subplots(1, figsize=(20, 10))
     data.plot(color='#EEEEEE', ax=ax)
+    # sort and make legend
+    merged = merged.sort_values(by='date')
+    norm = mpl.colors.Normalize(vmin=merged['number'].min(),
+                                vmax=merged['number'].max())
+    cmap = cm.viridis
+    fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), location='right')
+    count = 0
     # loop over each month and create and image for forest fire visualization
     # for that month
-    monthss = merged['date'].unique()
-    merged = merged.sort_values(by='date')
-    norm = mpl.colors.Normalize(vmin=merged['number'].min(), vmax=merged['number'].max())
-    cmap = cm.viridis
-    fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap),location='right')
-    count = 0
     for month in merged['date'].unique():
         count += 1
         merged_month = merged[merged['date'] == month]
         merged_month.plot(column='number', ax=ax)
-        text = ax.text(x=-45, y=3, s=str(merged_month['year'].unique()[0]) + ' ' + str(merged_month['month'].unique()[0]), fontsize=20)
+        text = ax.text(x=-45, y=3, s=str(merged_month['year'].unique()[0]) +
+                       ' ' + str(merged_month['month'].unique()[0]),
+                       fontsize=20)
         fig.savefig(f'frames/frame_{count:03d}', bbox_inches='tight')
         Artist.remove(text)
         plt.close()
     # putting together the images in a video
-    # ffmpeg -framerate 5 -i /home/frames/frame_%03d.png output.mp4 
+    # ffmpeg -framerate 5 -i /home/frame_%03d.png output.mp4

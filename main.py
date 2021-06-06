@@ -20,11 +20,11 @@ def main():
     data = gpd.read_file(
         '/Users/graciegibbons/UW/Sophomore/Spring/CSE_163/br-states.json')
     merged, data = dv.merge(fires, data)
-    # dv.graph_tot(merged, data)
-    # dv.time_lapse(merged, data)
+    dv.graph_tot(merged, data)
+    dv.time_lapse(merged, data)
     ml.trend(fires)
-    # ml.fit_model(fires)
-    ml.fit_model_2(fires)
+    ml.fit_model(fires)
+    # ml.fit_model_2(fires)
 
 
 if __name__ == '__main__':
